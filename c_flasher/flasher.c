@@ -40,6 +40,12 @@ int flasher_write(void)
 
 int flasher_read(void)
 {
+  printf("Reading memory from flash...");
+  int sector_to_read = *(volatile int *) DATA_SECTOR_ADDR;
+  void * flash_mem_sector_addr = (void *)(FLASH_MEM_START_ADDR + (sector_to_read * FLASH_SECTOR_SIZE));
+  size_t size = *(size_t *) DATA_SIZE_ADDR;
+  memcpy((void *) DATA_PAYLOAD_ADDR, flash_mem_sector_addr, size);
+
   return 0;
 }
 
