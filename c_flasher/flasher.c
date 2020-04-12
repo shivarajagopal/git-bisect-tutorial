@@ -51,7 +51,11 @@ int flasher_read(void)
 
 int flasher_verify(void)
 {
-  return 0;
+  printf("Verifying flash memory against input data...");
+  int sector_to_compare = *(volatile int *) DATA_SECTOR_ADDR;
+  void * flash_mem_sector_addr = (void *)(FLASH_MEM_START_ADDR + (sector_to_compare * FLASH_SECTOR_SIZE));
+  size_t size = *(size_t *) DATA_SIZE_ADDR;
+  return memcmp((void *) DATA_PAYLOAD_ADDR, flash_mem_sector_addr, size);
 }
 
 /* @brief
