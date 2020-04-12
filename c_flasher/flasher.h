@@ -11,6 +11,12 @@ enum memory_commands {
   memory_verify = 0x00000003,
 };
 
+#define COMMAND_ADDR        (0x10101000)
+#define DATA_SECTOR_ADDR    (0x10102000)
+#define DATA_ADDR           (0x10110000)
+#define DATA_SIZE_ADDR      (DATA_ADDR)
+#define DATA_PAYLOAD_ADDR   (DATA_ADDR + (sizeof(int)))
+
 /* @brief
  * Initialize the flasher utility, including any
  * storage that will be needed for flashing

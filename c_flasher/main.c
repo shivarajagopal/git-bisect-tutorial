@@ -7,7 +7,6 @@
 
 #include "flasher.h"
 
-#define COMMAND_ADDR     0x10101000
 #define NO_COMMAND_MAGIC 0xAA55AA55
 
 volatile uint32_t * command_reg = (volatile uint32_t *)COMMAND_ADDR;

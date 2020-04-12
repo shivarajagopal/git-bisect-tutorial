@@ -7,6 +7,9 @@
 #include <assert.h>
 
 #include "flasher.h"
+
+#include "flash_memory.h"
+
 /* @brief
  * Initialize the flasher utility, including any
  * storage that will be needed for flashing
@@ -19,6 +22,8 @@ int flasher_init(void)
 
 int flasher_format(void)
 {
+  printf("Formatting flash storage...");
+  memset((void *) FLASH_MEM_START_ADDR, 0, FLASH_TOTAL_SIZE);
   return 0;
 }
 
