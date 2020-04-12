@@ -10,6 +10,8 @@
 
 #include "flash_memory.h"
 
+extern struct nor_flash * nor_flash_dev;
+
 /* @brief
  * Initialize the flasher utility, including any
  * storage that will be needed for flashing
@@ -17,6 +19,7 @@
 int flasher_init(void)
 {
   printf("Initialize flash storage...");
+  nor_flash_dev->operations.init(FLASH_MEM_START_ADDR, nor_flash_dev);
   return 0;
 }
 
