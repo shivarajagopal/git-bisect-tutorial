@@ -29,6 +29,12 @@ int flasher_format(void)
 
 int flasher_write(void)
 {
+  printf("Writing memory to flash...");
+  int sector_to_write = *(volatile int *) DATA_SECTOR_ADDR;
+  void * flash_mem_sector_addr = (void *)(FLASH_MEM_START_ADDR + (sector_to_write * FLASH_SECTOR_SIZE));
+  size_t size = *(size_t *) DATA_SIZE_ADDR;
+  memcpy(flash_mem_sector_addr, (void *) DATA_PAYLOAD_ADDR, size);
+
   return 0;
 }
 
