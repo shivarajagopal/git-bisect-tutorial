@@ -19,40 +19,40 @@ extern struct nor_flash * nor_flash_dev;
 int flasher_init(void)
 {
   printf("Initialize flash storage...");
-  return nor_flash_dev->operations.init(FLASH_MEM_START_ADDR, nor_flash_dev);
+  return nor_flash_dev->operations.init(NULL);
 }
 
 int flasher_format(void)
 {
   printf("Formatting flash storage...");
-  return memset((void *) FLASH_MEM_START_ADDR, 0, FLASH_TOTAL_SIZE);
+  nor_flash_dev->operations.format();
 }
 
 int flasher_write(void)
 {
   printf("Writing memory to flash...");
   int sector_to_write = *(volatile int *) DATA_SECTOR_ADDR;
-  void * flash_mem_sector_addr = (void *)(FLASH_MEM_START_ADDR + (sector_to_write * FLASH_SECTOR_SIZE));
   size_t size = *(size_t *) DATA_SIZE_ADDR;
-  return memcpy(flash_mem_sector_addr, (void *) DATA_PAYLOAD_ADDR, size);
+  return nor_flash_dev->operations.write(sector_to_write, DATA_PAYLOAD_ADDR, size)
 }
 
 int flasher_read(void)
 {
   printf("Reading memory from flash...");
   int sector_to_read = *(volatile int *) DATA_SECTOR_ADDR;
-  void * flash_mem_sector_addr = (void *)(FLASH_MEM_START_ADDR + (sector_to_read * FLASH_SECTOR_SIZE));
   size_t size = *(size_t *) DATA_SIZE_ADDR;
-  return memcpy((void *) DATA_PAYLOAD_ADDR, flash_mem_sector_addr, size);
+  return nor_flash_dev->operations.read(sector_to_read, size);
 }
 
 int flasher_verify(void)
 {
   printf("Verifying flash memory against input data...");
   int sector_to_compare = *(volatile int *) DATA_SECTOR_ADDR;
-  void * flash_mem_sector_addr = (void *)(FLASH_MEM_START_ADDR + (sector_to_compare * FLASH_SECTOR_SIZE));
   size_t size = *(size_t *) DATA_SIZE_ADDR;
-  return memcmp((void *) DATA_PAYLOAD_ADDR, flash_mem_sector_addr, size);
+  uint8_t readback_data[size];
+  nor_flash_dev->operations.read(sector_to_compare, size);
+  int return_code = memcmp((void *) DATA_PAYLOAD_ADDR, readback_data, size);
+  return (return_code >= 0)
 }
 
 /* @brief
