@@ -16,6 +16,11 @@ uint32_t get_command(void)
   return *(command_reg);
 }
 
+void set_command(int32_t val)
+{
+  *(command_reg) = val;
+}
+
 int main(int32_t argc, char **argv)
 {
   printf("Initializing flasher\n");
@@ -33,9 +38,12 @@ int main(int32_t argc, char **argv)
       break;
     }
   }
+  // Run the command
   int flasher_return_code = flasher_run(command);
-  assert(flasher_return_code == 0);
-
+  // Set the return code into the return code memory location
+  *(volatile int*) COMMAND_RET_CODE_ADDR = flasher_return_code;
+  // Reset the command register
+  set_command(NO_COMMAND_MAGIC);
   return 0;
 }
 

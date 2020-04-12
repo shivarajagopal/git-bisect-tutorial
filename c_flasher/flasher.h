@@ -12,6 +12,7 @@ enum memory_commands {
 };
 
 #define COMMAND_ADDR        (0x10101000)
+#define COMMAND_RET_CODE_ADDR (0x10101004)
 #define DATA_SECTOR_ADDR    (0x10102000)
 #define DATA_ADDR           (0x10110000)
 #define DATA_SIZE_ADDR      (DATA_ADDR)

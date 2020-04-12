@@ -19,15 +19,13 @@ extern struct nor_flash * nor_flash_dev;
 int flasher_init(void)
 {
   printf("Initialize flash storage...");
-  nor_flash_dev->operations.init(FLASH_MEM_START_ADDR, nor_flash_dev);
-  return 0;
+  return nor_flash_dev->operations.init(FLASH_MEM_START_ADDR, nor_flash_dev);
 }
 
 int flasher_format(void)
 {
   printf("Formatting flash storage...");
-  memset((void *) FLASH_MEM_START_ADDR, 0, FLASH_TOTAL_SIZE);
-  return 0;
+  return memset((void *) FLASH_MEM_START_ADDR, 0, FLASH_TOTAL_SIZE);
 }
 
 int flasher_write(void)
@@ -36,9 +34,7 @@ int flasher_write(void)
   int sector_to_write = *(volatile int *) DATA_SECTOR_ADDR;
   void * flash_mem_sector_addr = (void *)(FLASH_MEM_START_ADDR + (sector_to_write * FLASH_SECTOR_SIZE));
   size_t size = *(size_t *) DATA_SIZE_ADDR;
-  memcpy(flash_mem_sector_addr, (void *) DATA_PAYLOAD_ADDR, size);
-
-  return 0;
+  return memcpy(flash_mem_sector_addr, (void *) DATA_PAYLOAD_ADDR, size);
 }
 
 int flasher_read(void)
@@ -47,9 +43,7 @@ int flasher_read(void)
   int sector_to_read = *(volatile int *) DATA_SECTOR_ADDR;
   void * flash_mem_sector_addr = (void *)(FLASH_MEM_START_ADDR + (sector_to_read * FLASH_SECTOR_SIZE));
   size_t size = *(size_t *) DATA_SIZE_ADDR;
-  memcpy((void *) DATA_PAYLOAD_ADDR, flash_mem_sector_addr, size);
-
-  return 0;
+  return memcpy((void *) DATA_PAYLOAD_ADDR, flash_mem_sector_addr, size);
 }
 
 int flasher_verify(void)
@@ -71,16 +65,16 @@ int flasher_run(uint32_t command)
   switch(command)
   {
     case memory_format:
-      flasher_format();
+      return_code = flasher_format();
       break;
     case memory_write:
-      flasher_write();
+      return_code = flasher_write();
       break;
     case memory_read:
-      flasher_read();
+      return_code = flasher_read();
       break;
     case memory_verify:
-      flasher_verify();
+      return_code = flasher_verify();
       break;
     default:
       assert(false);
