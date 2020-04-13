@@ -1,6 +1,6 @@
 import os
 import sys
-import debugger
+import debugger_probe
 
 # Memory Map
 COMMAND_ADDR = 0x10101000
@@ -16,48 +16,72 @@ WRITE = 0x1
 READ = 0x2
 VERIFY = 0x3
 
-def debugger_memory_read(addr, size):
-    return debugger.read(addr, size)
+class Debugger():
+    probe = None
 
-def debugger_memory_write(addr, data, size):
-    return debugger.write(addr, data, size)
+    def __init__(self):
+        self.probe= debugger_probe.Probe()
 
-def get_return_code():
-    debugger_memory_read(COMMAND_RET_CODE_ADDR, 4)
+    def load(self, filename);
+        return self.probe.load(filename)
 
-def format_memory():
-    debugger_memory_write(COMMAND_ADDR, FORMAT)
+    def run(self):
+        return self.probe.run()
 
-def write_memory(data, sector):
-    debugger_memory_write(DATA_SECTOR_ADDR, sector)
-    debugger_memory_write(DATA_SIZE_ADDR, len(data))
-    debugger_memory_write(DATA_PAYLOAD_ADDR, data)
-    debugger_memory_write(COMMAND_ADDR, WRITE)
+    def memory_read(self, addr, size):
+        return self.probe.read(addr, size)
 
-def read_memory(sector, size):
-    debugger_memory_write(DATA_SECTOR_ADDR, sector)
-    debugger_memory_write(DATA_SIZE_ADDR, size)
-    debugger_memory_write(COMMAND_ADDR, READ)
-    data = debugger_memory_read(DATA_PAYLOAD_ADDR, size)
-    return data
+    def memory_write(self, addr, data, size):
+        return self.probe.write(addr, data, size)
 
-def verify_memory(sector, data):
-    debugger_memory_write(DATA_SECTOR_ADDR, sector)
-    debugger_memory_write(DATA_SIZE_ADDR, len(data))
-    debugger_memory_write(DATA_PAYLOAD_ADDR, data)
-    debugger_memory_write(COMMAND_ADDR, VERIFY)
+class MemInterface():
+    debugger = None
 
-def load_and_run_flasher():
-    debugger.load("path to flasher binary")
-    debugger.run()
+    def __init__(self):
+        self.debugger = Debugger()
 
-def update_firmware(filename):
+    # Read back the return code
+    def get_return_code(self):
+        self.debugger.memory_read(COMMAND_RET_CODE_ADDR, 4)
+
+    # Format the memory block
+    def format_memory(self):
+        self.debugger.memory_write(COMMAND_ADDR, FORMAT)
+
+    # Write a set of data to a given sector
+    def write_memory(self, data, sector):
+        self.debugger.memory_write(DATA_SECTOR_ADDR, sector)
+        self.debugger.memory_write(DATA_SIZE_ADDR, len(data))
+        self.debugger.memory_write(DATA_PAYLOAD_ADDR, data)
+        self.debugger.memory_write(COMMAND_ADDR, WRITE)
+
+    # Read a given length of data starting at a given sector
+    def read_memory(self, sector, size):
+        self.debugger.memory_write(DATA_SECTOR_ADDR, sector)
+        self.debugger.memory_write(DATA_SIZE_ADDR, size)
+        self.debugger.memory_write(COMMAND_ADDR, READ)
+        data = self.debugger.memory_read(DATA_PAYLOAD_ADDR, size)
+        return data
+
+    # Verify that the given data matches the data at the given sector on chip
+    def verify_memory(self, sector, data):
+        self.debugger.memory_write(DATA_SECTOR_ADDR, sector)
+        self.debugger.memory_write(DATA_SIZE_ADDR, len(data))
+        self.debugger.memory_write(DATA_PAYLOAD_ADDR, data)
+        self.debugger.memory_write(COMMAND_ADDR, VERIFY)
+
+    # Load flasher binary into chip using debugger probe and run
+    def load_and_run_flasher(self, flasher_binary):
+        self.debugger.load("path to flasher binary")
+        self.debugger.run()
+
+def update_firmware(mem_interface, filename):
     # Load up and kick off the flasher
-    load_and_run_flasher()
+    mem_interface.load_and_run_flasher()
 
     # Format the chip
-    format_memory()
-    format_ret_code = get_return_code()
+    mem_interface.format_memory()
+    format_ret_code = mem_interface.get_return_code()
     assert(format_ret_code == 0)
 
     # Read in the file to flash
@@ -66,16 +90,18 @@ def update_firmware(filename):
         file_data = f.read()
 
     # Write the memory with the file data
-    write_memory(0, file_data)
-    write_ret_code = get_return_code()
-    assert(write_ret_code = get_return_code())
+    mem_interface.write_memory(0, file_data)
+    write_ret_code = mem_interface.get_return_code()
+    assert(write_ret_code == 0)
 
     # Verify the data from flash
-    verify_ret_code = verify_memory(0, file_data)
-    assert(verify_ret_code = get_return_code())
+    mem_interface.verify_memory(0, file_data)
+    verify_ret_code = mem_interface.get_return_code()
+    assert(verify_ret_code == 0)
 
 def main():
-    return update_firmware(sys.argv[1])
+    mem_interface = MemInterface()
+    return update_firmware(mem_interface, sys.argv[1])
 
 if __name__ == "__main__":
     exit(main())
