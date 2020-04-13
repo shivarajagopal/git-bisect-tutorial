@@ -1,5 +1,7 @@
 import os
 import sys
+import traceback
+# Fake package, to interface with a generic embedded system debugger
 import debugger_probe
 
 # Memory Map
@@ -99,9 +101,17 @@ def update_firmware(mem_interface, filename):
     verify_ret_code = mem_interface.get_return_code()
     assert(verify_ret_code == 0)
 
+    return 0
+
 def main():
     mem_interface = MemInterface()
-    return update_firmware(mem_interface, sys.argv[1])
+    try:
+        ret_code = update_firmware(mem_interface, sys.argv[1])
+        return ret_code
+    except AssertionError:
+        print("Assertion failed!")
+        traceback.print_exc(file=sys.stdout)
+        return -1
 
 if __name__ == "__main__":
     exit(main())
