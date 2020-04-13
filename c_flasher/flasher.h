@@ -11,6 +11,7 @@ enum memory_commands {
   memory_verify = 0x00000003,
 };
 
+// Memory layout
 #define COMMAND_ADDR        (0x10101000)
 #define COMMAND_RET_CODE_ADDR (0x10101004)
 #define DATA_SECTOR_ADDR    (0x10102000)
